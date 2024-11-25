@@ -39,7 +39,3 @@ async def login(user: UserLogin):
             raise HTTPException(status_code=401, detail="パスワードが間違っています。")
     raise HTTPException(status_code=404, detail="メールアドレスが見つかりません。")
 
-
-@app.get("/health")
-async def health_check():
-    return {"status": "ok", "message": "Backend is running"}
