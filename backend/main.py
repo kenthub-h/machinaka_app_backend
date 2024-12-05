@@ -2,6 +2,9 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from fastapi.middleware.cors import CORSMiddleware
+from database import test_connection #モギ追加：DBモジュール
+from sqlalchemy import text  #モギ追加
+from database import engine  # モギ追加：engineをインポート
 
 app = FastAPI()
 
@@ -39,3 +42,22 @@ async def login(user: UserLogin):
             raise HTTPException(status_code=401, detail="パスワードが間違っています。")
     raise HTTPException(status_code=404, detail="メールアドレスが見つかりません。")
 
+#モギ追加：DB接続テスト
+@app.on_event("startup")
+def startup_event():
+    # データベース接続テストを実行
+    test_connection()
+
+@app.get("/test-db-connection")
+def test_db():
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(text("SELECT DATABASE()"))
+            db_name = result.fetchone()[0] if result.rowcount > 0 else "No database selected"
+            return {"message": "Connected to database", "database": db_name}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/")
+def read_root():
+    return {"message": "FastAPI is running"}

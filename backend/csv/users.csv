@@ -1,0 +1,6 @@
+﻿user_id,user_name,user_type,office_id,job_id,industry_id
+1,街中太郎,Owner,1,1,1
+2,街中次郎,Owner,2,2,2
+3,町中一郎,Expert,3,3,3
+4,町中二郎,Expert,4,4,4
+5,町中三郎,Expert,5,5,5
