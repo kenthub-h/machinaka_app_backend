@@ -1,3 +1,4 @@
+#drop_tables.py
 from database import engine, Base
 
 def drop_all_tables():

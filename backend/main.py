@@ -1,10 +1,13 @@
+# main.py
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from fastapi.middleware.cors import CORSMiddleware
-from database import test_connection #モギ追加：DBモジュール
-from sqlalchemy import text  #モギ追加
-from database import engine  # モギ追加：engineをインポート
+from database import test_connection, engine  # DB関連のモジュールをインポート
+from sqlalchemy import text
+
+# 各ルーターをインポート
+from routers import offices, users, projects, skills, industries, job_titles
 
 app = FastAPI()
 
@@ -42,10 +45,9 @@ async def login(user: UserLogin):
             raise HTTPException(status_code=401, detail="パスワードが間違っています。")
     raise HTTPException(status_code=404, detail="メールアドレスが見つかりません。")
 
-#モギ追加：DB接続テスト
+# データベース接続テストをスタートアップイベントに設定
 @app.on_event("startup")
 def startup_event():
-    # データベース接続テストを実行
     test_connection()
 
 @app.get("/test-db-connection")
@@ -58,6 +60,15 @@ def test_db():
     except Exception as e:
         return {"error": str(e)}
 
+# 各ルーターを登録
+app.include_router(offices.router, prefix="/api", tags=["offices"])
+app.include_router(users.router, prefix="/api", tags=["users"])
+app.include_router(projects.router, prefix="/api", tags=["projects"])
+app.include_router(skills.router, prefix="/api", tags=["skills"])
+app.include_router(industries.router, prefix="/api", tags=["industries"])
+app.include_router(job_titles.router, prefix="/api", tags=["job_titles"])
+
+# ルートエンドポイント
 @app.get("/")
 def read_root():
-    return {"message": "FastAPI is running"}
+    return {"message": "Welcome to the Machinaka App API"}

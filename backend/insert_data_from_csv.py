@@ -1,6 +1,9 @@
 # insert_data_from_csv
+# insert_data_from_csv
 import os
 import pandas as pd
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import text  # text() をインポート
 from database import engine
 from models import Office, User, Industry, JobTitle, Skill, Project
 
@@ -10,31 +13,96 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # CSVフォルダパス
 csv_folder_path = os.path.join("csv")
 
-# CSVファイルをテーブルにマッピング
-csv_files = {
-    "offices.csv": Office,
-    "users.csv": User,
-    "industries.csv": Industry,
-    "job_titles.csv": JobTitle,
-    "skills.csv": Skill,
-    "projects.csv": Project,
-}
+# CSVファイルをテーブルにマッピング（挿入順序を考慮）
+csv_files = [
+    ("offices.csv", Office),
+    ("industries.csv", Industry),
+    ("job_titles.csv", JobTitle),
+    ("users.csv", User),
+    ("skills.csv", Skill),
+    ("projects.csv", Project),
+]
 
-# データ挿入
+# データ挿入関数
 def insert_data_from_csv():
     try:
-        for file_name, model in csv_files.items():
-            file_path = os.path.join(csv_folder_path, file_name)
-            # CSV読み込みとデータ挿入
-            data = pd.read_csv(file_path)
-            with engine.connect() as connection:
-                data.to_sql(model.__tablename__, con=connection, if_exists="append", index=False)
-        print("Data insertion completed successfully!")
+        with engine.connect() as connection:
+            # 外部キー制約を一時的に無効化
+            connection.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
+            print("Foreign key checks disabled.")
+
+            for file_name, model in csv_files:
+                file_path = os.path.join(csv_folder_path, file_name)
+                # CSVデータ読み込み
+                data = pd.read_csv(file_path)
+                
+                # 特定のテーブルに対する特別処理 (project_id は自動生成)
+                if model.__tablename__ == "projects" and "project_id" in data.columns:
+                    data = data.drop(columns=["project_id"])
+                    print(f"`project_id` column dropped for table: {model.__tablename__}")
+
+                # テーブルのデータを削除（DELETEを使用）
+                connection.execute(text(f"DELETE FROM {model.__tablename__}"))
+                print(f"Table {model.__tablename__} cleared successfully.")
+                
+                # データ挿入（既存データは保持せず置き換え）
+                data.to_sql(
+                    model.__tablename__,
+                    con=connection,
+                    if_exists="append",  # データを追加挿入
+                    index=False
+                )
+                print(f"Data inserted successfully for table: {model.__tablename__}")
+
+            # 外部キー制約を再度有効化
+            connection.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
+            print("Foreign key checks enabled.")
+    except IntegrityError as e:
+        print(f"IntegrityError occurred: {e}")
     except Exception as e:
         print(f"Error occurred while inserting data: {e}")
 
 if __name__ == "__main__":
     insert_data_from_csv()
+
+
+
+# import os
+# import pandas as pd
+# from database import engine
+# from models import Office, User, Industry, JobTitle, Skill, Project
+
+# # カレントディレクトリをスクリプトのディレクトリに変更
+# os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+# # CSVフォルダパス
+# csv_folder_path = os.path.join("csv")
+
+# # CSVファイルをテーブルにマッピング
+# csv_files = {
+#     "offices.csv": Office,
+#     "users.csv": User,
+#     "industries.csv": Industry,
+#     "job_titles.csv": JobTitle,
+#     "skills.csv": Skill,
+#     "projects.csv": Project,
+# }
+
+# # データ挿入
+# def insert_data_from_csv():
+#     try:
+#         for file_name, model in csv_files.items():
+#             file_path = os.path.join(csv_folder_path, file_name)
+#             # CSV読み込みとデータ挿入
+#             data = pd.read_csv(file_path)
+#             with engine.connect() as connection:
+#                 data.to_sql(model.__tablename__, con=connection, if_exists="replace", index=False) #append→replaceに変更（上書き）
+#         print("Data insertion completed successfully!")
+#     except Exception as e:
+#         print(f"Error occurred while inserting data: {e}")
+
+# if __name__ == "__main__":
+#     insert_data_from_csv()
 
 
 

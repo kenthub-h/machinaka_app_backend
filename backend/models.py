@@ -4,6 +4,8 @@
 from sqlalchemy import Column, Integer, String, Text, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from sqlalchemy.exc import SQLAlchemyError
+from database import Base, engine  # 修正ポイント
 
 # ベースクラス
 Base = declarative_base()
@@ -80,3 +82,24 @@ class Project(Base):
 
     # Usersとのリレーション
     user = relationship("User", back_populates="projects")
+
+
+try:
+    Base.metadata.create_all(bind=engine)
+except SQLAlchemyError as e:
+    print("Error creating tables:", e)
+
+# 修正版テーブル2024.12.06採用していないが一旦メモとして
+# class User(Base):
+#     __tablename__ = 'users'
+#     user_id = Column(BigInteger, primary_key=True, autoincrement=True)
+#     user_name = Column(String(100), nullable=False)
+#     user_type = Column(String(50), nullable=True)
+#     office_id = Column(BigInteger, ForeignKey('offices.office_id'), nullable=True)
+#     job_id = Column(BigInteger, ForeignKey('job_titles.job_id'), nullable=True)
+#     industry_id = Column(BigInteger, ForeignKey('industries.industry_id'), nullable=True)
+
+#     # リレーションシップ
+#     office = relationship("Office", back_populates="users")
+#     job = relationship("JobTitle", back_populates="users")
+#     industry = relationship("Industry", back_populates="users")
