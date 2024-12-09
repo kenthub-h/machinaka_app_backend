@@ -25,3 +25,9 @@ def create_project(project: ProjectBase, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_project)
     return new_project
+
+# @router.get("/projects", response_model=List[schemas.Project])
+# async def get_projects(db: Session = Depends(get_db)):
+#     projects = db.query(models.Project).all()
+#     print(projects)  # デバッグ用
+#     return projects

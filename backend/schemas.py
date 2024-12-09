@@ -24,11 +24,13 @@ class Office(OfficeBase):
 class ProjectBase(BaseModel):
     project_name: str
     project_description: Optional[str]
+    project_image_url: Optional[str]  # 追加: 画像URL
 
 
 class Project(ProjectBase):
     project_id: int
     user_id: int
+    project_image_url: Optional[str]  # この行が必要
     class Config:
         orm_mode = True
 

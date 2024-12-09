@@ -79,6 +79,7 @@ class Project(Base):
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     project_name = Column(String(100), nullable=False)
     project_description = Column(Text, nullable=True)
+    project_image_url = Column(String, nullable=True)
 
     # Usersとのリレーション
     user = relationship("User", back_populates="projects")
