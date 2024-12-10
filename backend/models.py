@@ -30,7 +30,9 @@ class Office(Base):
 class User(Base):
     __tablename__ = 'users'
     user_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_name = Column(String(100), nullable=False)  # 修正: カラム名を統一
+    user_name = Column(String(100), nullable=False)
+    email = Column(String(255), nullable=False, unique=True)  # emailカラム
+    password = Column(String(255), nullable=False)  # passwordカラム
     user_type = Column(String(50), nullable=True)
     office_id = Column(Integer, ForeignKey('offices.office_id'), nullable=True)
     job_id = Column(Integer, ForeignKey('job_titles.job_id'), nullable=True)
