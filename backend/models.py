@@ -70,6 +70,7 @@ class Skill(Base):
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     skill_name = Column(String(100), nullable=False)
     skill_description = Column(Text, nullable=True)
+    cosmos_id = Column(String(100), nullable=True)
 
     # Usersとのリレーション
     user = relationship("User", back_populates="skills")
